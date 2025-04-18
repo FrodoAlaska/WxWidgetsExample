@@ -5,19 +5,22 @@ set(APP_SOURCES
   ${APP_SRC_DIR}/app.cpp
   ${APP_SRC_DIR}/main.cpp
 )
-############################################################
 
-### Library Sources ###
-############################################################
-set(LIBS_SOURCES 
-  # STB
-  ${APP_LIBS_DIR}/stb/stb_image.cpp
+set(APP_LIBS_SOURCES 
+  # GLAD 
+  ${APP_LIBS_DIR}/glad/glad.c
 )
 ############################################################
 
 ### Final Build ###
 ############################################################
-add_library(${APP_EXECUTABLE_NAME} ${APP_SOURCES})
+if(WIN32) 
+  set(EXE_TYPE "WIN32")
+else()
+  set(EXE_TYPE "")
+endif()
+
+add_executable(${APP_EXECUTABLE_NAME} ${EXE_TYPE} ${APP_SOURCES} ${APP_LIBS_SOURCES})
 ############################################################
 
 ### Linking ###
