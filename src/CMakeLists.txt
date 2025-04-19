@@ -5,11 +5,6 @@ set(APP_SOURCES
   ${APP_SRC_DIR}/app.cpp
   ${APP_SRC_DIR}/main.cpp
 )
-
-set(APP_LIBS_SOURCES 
-  # GLAD 
-  ${APP_LIBS_DIR}/glad/glad.c
-)
 ############################################################
 
 ### Final Build ###
@@ -20,7 +15,7 @@ else()
   set(EXE_TYPE "")
 endif()
 
-add_executable(${APP_EXECUTABLE_NAME} ${EXE_TYPE} ${APP_SOURCES} ${APP_LIBS_SOURCES})
+add_executable(${APP_EXECUTABLE_NAME} ${EXE_TYPE} ${APP_SOURCES})
 ############################################################
 
 ### Linking ###

@@ -4,7 +4,6 @@
 #define WX_PRECOMP
 #include <wx/wx.h>
 
-#include <glad/glad.h>
 #include <wx/glcanvas.h>
 
 // -------------------------------------------------------------------------------------
@@ -51,18 +50,11 @@ class GLCanvas : public wxGLCanvas {
     void OnSize(wxSizeEvent& event);
 
   private:
-    void CheckCompileErrors(int shader);
-    void CheckLinkerErrors(int program);
-
     bool InitGL();
-    void InitBuffers();
-    void InitShaders();
 
   private:
     wxGLContext* m_context = nullptr; 
     bool m_isGLInit        = false;
-
-    unsigned int m_vao, m_ebo, m_vbo, m_shader;
 };
 // GLCanvas
 // -------------------------------------------------------------------------------------

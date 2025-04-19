@@ -43,6 +43,7 @@ elseif(LINUX)
 endif()
 
 set(wxBUILD_SHARED OFF)
+
 set(APP_EXECUTABLE_NAME "wxExample")
 ############################################################
 
@@ -50,6 +51,7 @@ set(APP_EXECUTABLE_NAME "wxExample")
 ############################################################
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+add_compile_definitions(wxUSE_GLCANVAS=1)
 if(WIN32)
   add_compile_definitions("UNICODE; _UNICODE")
 endif()
