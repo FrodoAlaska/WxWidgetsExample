@@ -2,7 +2,7 @@
 
 #include <wx/wx.h>
 
-#define ID_HELLO 1
+#define ID_PANEL_BUTTON (wxID_HIGHEST + 1)
 
 // -------------------------------------------------------------------------------------
 // ExampleApp functions
@@ -28,8 +28,23 @@ GLFrame::GLFrame()
   m_canvas = new GLCanvas(this); 
   m_canvas->SetMinSize(FromDIP(wxSize(640, 480)));
   
+  // Setting OpenGL attributes
+  wxGLAttributes attribs;
+  attribs.RGBA().DoubleBuffer().EndList();
+  
+  // Setting the sizer
   wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-  sizer->Add(m_canvas, 1, wxEXPAND);
+  sizer->Add(m_canvas);
+
+  // Creating components
+  wxBoxSizer* otherSizer = new wxBoxSizer(wxHORIZONTAL);
+  wxButton* panelButton = new wxButton(this, ID_PANEL_BUTTON, "Open Panel");
+  otherSizer->Add(panelButton);
+  
+  sizer->Add(otherSizer);
+  SetSizerAndFit(sizer);
+
+  Bind(wxEVT_BUTTON, &GLFrame::OnPanelButton, this);
 }
 
 GLFrame::~GLFrame() 
@@ -37,19 +52,10 @@ GLFrame::~GLFrame()
 
 }
 
-void GLFrame::OnHello(wxCommandEvent& event) 
+void GLFrame::OnPanelButton(wxCommandEvent& event) 
 {
-  wxLogMessage("Hey, there!");
-}
-
-void GLFrame::OnExit(wxCommandEvent& event) 
-{
-  Close(true);
-}
-
-void GLFrame::OnAbout(wxCommandEvent& event) 
-{
-  wxMessageBox("Important information", "About Me: ", wxOK | wxICON_INFORMATION);
+  m_isPanelOpen = !m_isPanelOpen;
+  wxLogMessage("Not here, idiot!");
 }
 
 // GLFrame functions
@@ -63,10 +69,10 @@ GLCanvas::GLCanvas(GLFrame* parent)
 {
   // Set some useful attributes for OpenGL
   wxGLContextAttrs contextAttrs; 
-  contextAttrs.CoreProfile().OGLVersion(3, 3).Robust().EndList();
+  contextAttrs.CompatibilityProfile().OGLVersion(2, 2).Robust().EndList();
   
   // Create the OpenGL context
-  m_context = new wxGLContext(this, nullptr, &contextAttrs);
+  m_context = new wxGLContext(this);
   if(!m_context->IsOK()) 
   {
     wxMessageBox("Could not load OpenGL version CORE 4.5", "OPENGL ERROR", wxOK | wxICON_ERROR);
@@ -104,24 +110,8 @@ void GLCanvas::OnPaint(wxPaintEvent& event)
   auto size = GetSize();
   glViewport(0, 0, size.x, size.y);
  
-  glBegin(GL_QUADS);
-    glColor3f(1.0f, 1.0f, 1.0f);
+  DrawCube(1, 1);  
 
-    glVertex2f(-0.5f, -0.5f);
-    glVertex2f(-0.5f,  0.5f);
-    glVertex2f( 0.5f,  0.5f);
-    glVertex2f( 0.5f, -0.5f);
-  glEnd();
-
-  glBegin(GL_QUADS);
-    glColor3f(1.0f, 0.0f, 0.0f);
-
-    glVertex2f( 0.1f,  0.1f);
-    glVertex2f(-0.1f,  0.1f);
-    glVertex2f(-0.1f, -0.1f);
-    glVertex2f( 0.1f, -0.1f);
-  glEnd();
-  
   glFlush();
   SwapBuffers();
 }
@@ -133,6 +123,77 @@ void GLCanvas::OnSize(wxSizeEvent& event)
 
   Refresh();
 }
+    
+void GLCanvas::DrawCube(int xAngle, int yAngle) 
+{
+   glMatrixMode(GL_MODELVIEW);
+   glLoadIdentity();
+   glTranslatef(0.0f, 0.0f, -2.0f);
+   glRotatef(xAngle, 1.0f, 0.0f, 0.0f);
+   glRotatef(yAngle, 0.0f, 1.0f, 0.0f);
+
+   glBegin(GL_QUADS);
+    glNormal3f( 0.0f, 0.0f, 1.0f);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    
+    glVertex3f( 0.5f, 0.5f, 0.5f);
+    glVertex3f(-0.5f, 0.5f, 0.5f);
+    glVertex3f(-0.5f,-0.5f, 0.5f);
+    glVertex3f( 0.5f,-0.5f, 0.5f);
+   glEnd();
+
+   glBegin(GL_QUADS);
+    glNormal3f( 0.0f, 0.0f,-1.0f);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    
+    glVertex3f(-0.5f,-0.5f,-0.5f);
+    glVertex3f(-0.5f, 0.5f,-0.5f);
+    glVertex3f( 0.5f, 0.5f,-0.5f);
+    glVertex3f( 0.5f,-0.5f,-0.5f);
+   glEnd();
+
+   glBegin(GL_QUADS);
+    glNormal3f(0.0f, 1.0f, 0.0f);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    
+    glVertex3f( 0.5f, 0.5f, 0.5f);
+    glVertex3f( 0.5f, 0.5f,-0.5f);
+    glVertex3f(-0.5f, 0.5f,-0.5f);
+    glVertex3f(-0.5f, 0.5f, 0.5f);
+   glEnd();
+
+   glBegin(GL_QUADS);
+    glNormal3f( 0.0f,-1.0f, 0.0f);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    
+    glVertex3f(-0.5f,-0.5f,-0.5f);
+    glVertex3f( 0.5f,-0.5f,-0.5f);
+    glVertex3f( 0.5f,-0.5f, 0.5f);
+    glVertex3f(-0.5f,-0.5f, 0.5f);
+   glEnd();
+
+   glBegin(GL_QUADS);
+    glNormal3f( 1.0f, 0.0f, 0.0f);
+    glColor3f(1.0f, 1.0f, 1.0f);
+   
+    glVertex3f(0.5f,  0.5f,  0.5f);
+    glVertex3f(0.5f, -0.5f,  0.5f);
+    glVertex3f(0.5f, -0.5f, -0.5f);
+    glVertex3f(0.5f,  0.5f, -0.5f);
+   glEnd();
+
+   glBegin(GL_QUADS);
+    glNormal3f(-1.0f, 0.0f, 0.0f);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    
+    glVertex3f(-0.5f,-0.5f,-0.5f);
+    glVertex3f(-0.5f,-0.5f, 0.5f);
+    glVertex3f(-0.5f, 0.5f, 0.5f);
+    glVertex3f(-0.5f, 0.5f,-0.5f);
+   glEnd();
+
+   glFlush();
+}
 
 bool GLCanvas::InitGL() 
 {
@@ -141,6 +202,7 @@ bool GLCanvas::InitGL()
 
   // Set some OpenGL states
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
 
   return true;
 }

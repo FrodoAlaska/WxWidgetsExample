@@ -28,12 +28,11 @@ class GLFrame : public wxFrame {
     ~GLFrame();
 
   public:
-    void OnHello(wxCommandEvent& event);
-    void OnExit(wxCommandEvent& event);
-    void OnAbout(wxCommandEvent& event);
+    void OnPanelButton(wxCommandEvent& event);
 
   private: 
     GLCanvas* m_canvas = nullptr;
+    bool m_isPanelOpen = false;
 };
 // GLFrame
 // -------------------------------------------------------------------------------------
@@ -50,6 +49,8 @@ class GLCanvas : public wxGLCanvas {
     void OnSize(wxSizeEvent& event);
 
   private:
+    void DrawCube(int xAngle, int yAngle);
+
     bool InitGL();
 
   private:
