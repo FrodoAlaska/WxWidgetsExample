@@ -2,7 +2,17 @@
 
 #include <wx/wx.h>
 
-#define ID_PANEL_BUTTON (wxID_HIGHEST + 1)
+// -------------------------------------------------------------------------------------
+// WidgetsID
+enum WidgetsID 
+{
+  ID_PANEL_BUTTON = wxID_HIGHEST + 1,
+
+  ID_PANEL_SLIDER_ROTATION_X,
+  ID_PANEL_SLIDER_ROTATION_Y,
+}
+// WidgetsID
+// -------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------
 // ExampleApp functions
@@ -32,19 +42,29 @@ GLFrame::GLFrame()
   wxGLAttributes attribs;
   attribs.RGBA().DoubleBuffer().EndList();
   
-  // Setting the sizer
-  wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-  sizer->Add(m_canvas);
-
-  // Creating components
-  wxBoxSizer* otherSizer = new wxBoxSizer(wxHORIZONTAL);
-  wxButton* panelButton = new wxButton(this, ID_PANEL_BUTTON, "Open Panel");
-  otherSizer->Add(panelButton);
+  // Sizers init
+  m_mainSizer   = new wxBoxSizer(wxVERTICAL);
+  m_bottomSizer = new wxBoxSizer(wxHORIZONTAL); 
+  m_panelSizer  = new wxBoxSizer(wxVERTICAL); 
   
-  sizer->Add(otherSizer);
-  SetSizerAndFit(sizer);
+  // Main sizer components init
+  m_mainSizer->Add(m_canvas);
+  m_mainSizer->Add(m_bottomSizer);
+  m_mainSizer->Add(m_panelSizer);
 
+  // Bottom sizer components init
+  m_bottomSizer->Add(new wxButton(this, ID_PANEL_BUTTON, "Open Panel"));
+  
+  // Panel sizer components init
+  m_panelSizer->Add(new wxSlider(this, ID_PANEL_SLIDER_ROTATION_X, m_canvas->cubeRotation.x, 0, 360)); 
+  m_panelSizer->Add(new wxSlider(this, ID_PANEL_SLIDER_ROTATION_Y, m_canvas->cubeRotation.y, 0, 360)); 
+
+  // Re-fit
+  SetSizerAndFit(sizer);
+  
+  // Binding events
   Bind(wxEVT_BUTTON, &GLFrame::OnPanelButton, this);
+  Bind(wxEVT_SCROLL_CHANGED, &GLCanvas::OnRotationSlider, this);
 }
 
 GLFrame::~GLFrame() 
@@ -92,6 +112,8 @@ GLCanvas::GLCanvas(GLFrame* parent)
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glFrustum(-0.5, 0.5, -0.5, 0.5, 0.1, 100.0);
+
+  cubeRotation = wxSize(0, 0);
 }
 
 GLCanvas::~GLCanvas() 
@@ -110,7 +132,7 @@ void GLCanvas::OnPaint(wxPaintEvent& event)
   auto size = GetSize();
   glViewport(0, 0, size.x, size.y);
  
-  DrawCube(1, 1);  
+  DrawCube();  
 
   glFlush();
   SwapBuffers();
@@ -123,17 +145,22 @@ void GLCanvas::OnSize(wxSizeEvent& event)
 
   Refresh();
 }
-    
-void GLCanvas::DrawCube(int xAngle, int yAngle) 
+
+void GLCanvas::OnRotationSlider(wxCommandEvent& event) 
+{
+  int value = event.GetInt(); 
+  wxLogMessage("VALUE = %i", value);
+}
+
+void GLCanvas::DrawCube() 
 {
    glMatrixMode(GL_MODELVIEW);
    glLoadIdentity();
-   glTranslatef(0.0f, 0.0f, -2.0f);
-   glRotatef(xAngle, 1.0f, 0.0f, 0.0f);
-   glRotatef(yAngle, 0.0f, 1.0f, 0.0f);
+   glTranslatef(0.0f, 0.0f, 7.0f);
+   glRotatef(cubeRotation.x, 1.0f, 0.0f, 0.0f);
+   glRotatef(cubeRotation.y, 0.0f, 1.0f, 0.0f);
 
    glBegin(GL_QUADS);
-    glNormal3f( 0.0f, 0.0f, 1.0f);
     glColor3f(1.0f, 1.0f, 1.0f);
     
     glVertex3f( 0.5f, 0.5f, 0.5f);
@@ -143,7 +170,6 @@ void GLCanvas::DrawCube(int xAngle, int yAngle)
    glEnd();
 
    glBegin(GL_QUADS);
-    glNormal3f( 0.0f, 0.0f,-1.0f);
     glColor3f(1.0f, 1.0f, 1.0f);
     
     glVertex3f(-0.5f,-0.5f,-0.5f);
@@ -153,7 +179,6 @@ void GLCanvas::DrawCube(int xAngle, int yAngle)
    glEnd();
 
    glBegin(GL_QUADS);
-    glNormal3f(0.0f, 1.0f, 0.0f);
     glColor3f(1.0f, 1.0f, 1.0f);
     
     glVertex3f( 0.5f, 0.5f, 0.5f);
@@ -163,7 +188,6 @@ void GLCanvas::DrawCube(int xAngle, int yAngle)
    glEnd();
 
    glBegin(GL_QUADS);
-    glNormal3f( 0.0f,-1.0f, 0.0f);
     glColor3f(1.0f, 1.0f, 1.0f);
     
     glVertex3f(-0.5f,-0.5f,-0.5f);
@@ -173,7 +197,6 @@ void GLCanvas::DrawCube(int xAngle, int yAngle)
    glEnd();
 
    glBegin(GL_QUADS);
-    glNormal3f( 1.0f, 0.0f, 0.0f);
     glColor3f(1.0f, 1.0f, 1.0f);
    
     glVertex3f(0.5f,  0.5f,  0.5f);
@@ -183,7 +206,6 @@ void GLCanvas::DrawCube(int xAngle, int yAngle)
    glEnd();
 
    glBegin(GL_QUADS);
-    glNormal3f(-1.0f, 0.0f, 0.0f);
     glColor3f(1.0f, 1.0f, 1.0f);
     
     glVertex3f(-0.5f,-0.5f,-0.5f);
@@ -191,8 +213,6 @@ void GLCanvas::DrawCube(int xAngle, int yAngle)
     glVertex3f(-0.5f, 0.5f, 0.5f);
     glVertex3f(-0.5f, 0.5f,-0.5f);
    glEnd();
-
-   glFlush();
 }
 
 bool GLCanvas::InitGL() 
