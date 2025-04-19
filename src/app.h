@@ -35,7 +35,6 @@ class GLFrame : public wxFrame {
 
     wxBoxSizer* m_mainSizer   = nullptr;
     wxBoxSizer* m_bottomSizer = nullptr; 
-    wxBoxSizer* m_panelSizer  = nullptr;
 
     bool m_isPanelOpen = false;
 };
@@ -55,7 +54,7 @@ class GLCanvas : public wxGLCanvas {
     void OnRotationSlider(wxCommandEvent& event);
 
   public: 
-    wxSize cubeRotation; 
+    wxBoxSizer* panelSizer = nullptr;
 
   private:
     void DrawCube();
@@ -65,6 +64,7 @@ class GLCanvas : public wxGLCanvas {
   private:
     wxGLContext* m_context = nullptr; 
     bool m_isGLInit        = false;
+    wxSize m_cubeRotation  = wxSize(1, 1); 
 };
 // GLCanvas
 // -------------------------------------------------------------------------------------

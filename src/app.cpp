@@ -10,7 +10,7 @@ enum WidgetsID
 
   ID_PANEL_SLIDER_ROTATION_X,
   ID_PANEL_SLIDER_ROTATION_Y,
-}
+};
 // WidgetsID
 // -------------------------------------------------------------------------------------
 
@@ -45,26 +45,20 @@ GLFrame::GLFrame()
   // Sizers init
   m_mainSizer   = new wxBoxSizer(wxVERTICAL);
   m_bottomSizer = new wxBoxSizer(wxHORIZONTAL); 
-  m_panelSizer  = new wxBoxSizer(wxVERTICAL); 
   
   // Main sizer components init
   m_mainSizer->Add(m_canvas);
   m_mainSizer->Add(m_bottomSizer);
-  m_mainSizer->Add(m_panelSizer);
+  // m_mainSizer->Add(m_canvas->panelSizer);
 
   // Bottom sizer components init
   m_bottomSizer->Add(new wxButton(this, ID_PANEL_BUTTON, "Open Panel"));
-  
-  // Panel sizer components init
-  m_panelSizer->Add(new wxSlider(this, ID_PANEL_SLIDER_ROTATION_X, m_canvas->cubeRotation.x, 0, 360)); 
-  m_panelSizer->Add(new wxSlider(this, ID_PANEL_SLIDER_ROTATION_Y, m_canvas->cubeRotation.y, 0, 360)); 
 
   // Re-fit
-  SetSizerAndFit(sizer);
+  SetSizerAndFit(m_mainSizer);
   
   // Binding events
   Bind(wxEVT_BUTTON, &GLFrame::OnPanelButton, this);
-  Bind(wxEVT_SCROLL_CHANGED, &GLCanvas::OnRotationSlider, this);
 }
 
 GLFrame::~GLFrame() 
@@ -113,7 +107,13 @@ GLCanvas::GLCanvas(GLFrame* parent)
   glLoadIdentity();
   glFrustum(-0.5, 0.5, -0.5, 0.5, 0.1, 100.0);
 
-  cubeRotation = wxSize(0, 0);
+  // Panel sizer components init
+  panelSizer = new wxBoxSizer(wxVERTICAL); 
+  panelSizer->Add(new wxSlider(this, ID_PANEL_SLIDER_ROTATION_X, m_cubeRotation.x, 0, 360)); 
+  panelSizer->Add(new wxSlider(this, ID_PANEL_SLIDER_ROTATION_Y, m_cubeRotation.y, 0, 360)); 
+  
+  // Binding events
+  Bind(wxEVT_SCROLL_CHANGED, &GLCanvas::OnRotationSlider, this);
 }
 
 GLCanvas::~GLCanvas() 
@@ -149,16 +149,16 @@ void GLCanvas::OnSize(wxSizeEvent& event)
 void GLCanvas::OnRotationSlider(wxCommandEvent& event) 
 {
   int value = event.GetInt(); 
-  wxLogMessage("VALUE = %i", value);
+  m_cubeRotation.x = value;
 }
 
 void GLCanvas::DrawCube() 
 {
    glMatrixMode(GL_MODELVIEW);
    glLoadIdentity();
-   glTranslatef(0.0f, 0.0f, 7.0f);
-   glRotatef(cubeRotation.x, 1.0f, 0.0f, 0.0f);
-   glRotatef(cubeRotation.y, 0.0f, 1.0f, 0.0f);
+   glTranslatef(0.0f, 0.0f, -1.0f);
+   glRotatef(m_cubeRotation.x, 1.0f, 0.0f, 0.0f);
+   glRotatef(m_cubeRotation.y, 0.0f, 1.0f, 0.0f);
 
    glBegin(GL_QUADS);
     glColor3f(1.0f, 1.0f, 1.0f);
