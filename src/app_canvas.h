@@ -60,6 +60,7 @@ class AppCanvas : public wxGLCanvas {
     void OnSize(wxSizeEvent& event);
   
     int CreateTexture(const char* path);
+    void DestroyTexture(unsigned int textureID);
 
     void DrawQuad(const DrawRectangle& rect, const Color& col);
     void DrawQuad(const DrawRectangle& rect, const int textureID);
@@ -75,6 +76,7 @@ class AppCanvas : public wxGLCanvas {
     bool InitGL();
 
   private:
+    int m_texture          = 0;
     wxGLContext* m_context = nullptr; 
     bool m_isGLInit        = false;
 };

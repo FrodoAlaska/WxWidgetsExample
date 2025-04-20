@@ -52,6 +52,7 @@ set(APP_EXECUTABLE_NAME "wxExample")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_compile_definitions(wxUSE_GLCANVAS=1)
+add_compile_definitions(wxUSE_LIBPNG=1)
 if(WIN32)
   add_compile_definitions("UNICODE; _UNICODE")
 endif()
@@ -61,4 +62,8 @@ endif()
 ############################################################
 add_subdirectory(libs/WxWidgets)
 add_subdirectory(src)
+
+# Copy the assets directory to the final binary output 
+# to let the executable easily access it. 
+file(COPY assets DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 ############################################################

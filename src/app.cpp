@@ -8,6 +8,7 @@
 
 bool ExampleApp::OnInit() 
 {
+  wxInitAllImageHandlers();
   AppFrame* frame = new AppFrame();
   frame->Show(true);
 

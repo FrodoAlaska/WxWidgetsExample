@@ -66,6 +66,7 @@ AppFrame::~AppFrame()
 
 void AppFrame::OnPanelButton(wxCommandEvent& event) 
 {
+  // Open or close the panel 
   m_isPanelOpen = !m_isPanelOpen;
   m_panelSizer->ShowItems(m_isPanelOpen);
 }
@@ -82,6 +83,7 @@ void AppFrame::OnSlider(wxCommandEvent& event)
   
 void AppFrame::OnCheckBox(wxCommandEvent& event) 
 {
+  // Change the canvas's draw mode based on the checkbox's "check" status.
   if(event.IsChecked()) 
     m_canvas->polygonMode = GL_LINE;
   else 
@@ -95,6 +97,10 @@ void AppFrame::OnColorPicker(wxColourPickerEvent& event)
 {
   wxColour colorValue = event.GetColour();
 
+  // OpenGL handles colors as floats. So any value between 0.0f and 1.0f 
+  // is a valid color. However, wxWidgets handles colors as an `int`. 
+  // Any value between 0 and 255 is valid color. This is just here to 
+  // convert between the two ranges.
   m_canvas->quadColor.r = colorValue.Red() / 255.0f;
   m_canvas->quadColor.g = colorValue.Green() / 255.0f;
   m_canvas->quadColor.b = colorValue.Blue() / 255.0f;

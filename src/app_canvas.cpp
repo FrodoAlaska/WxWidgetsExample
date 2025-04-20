@@ -1,6 +1,8 @@
 #include "app_canvas.h"
 
 #include <wx/wx.h>
+#include <filesystem>
+#include <string>
 
 // -------------------------------------------------------------------------------------
 // AppCanvas functions
@@ -16,7 +18,7 @@ AppCanvas::AppCanvas(AppFrame* parent)
   m_context = new wxGLContext(this);
   if(!m_context->IsOK()) 
   {
-    wxMessageBox("Could not load OpenGL version CORE 4.5", "OPENGL ERROR", wxOK | wxICON_ERROR);
+    wxMessageBox("Could not load OpenGL", "OPENGL ERROR", wxOK | wxICON_ERROR);
     delete m_context;
 
     return;
@@ -31,12 +33,14 @@ AppCanvas::AppCanvas(AppFrame* parent)
   
   // Setting default values
   polygonMode = GL_FILL;
-  quadRect    = DrawRectangle(10.0f, 32.0f);
+  quadRect    = DrawRectangle(10.0f, 1.0f);
   quadColor   = Color(1.0f);
+  m_texture   = CreateTexture("assets/menuGrid.png");
 }
 
 AppCanvas::~AppCanvas() 
 {
+  DestroyTexture(m_texture);
   delete m_context;
 }
 
@@ -50,11 +54,11 @@ void AppCanvas::OnPaint(wxPaintEvent& event)
 
   wxSize size = GetSize();
   glViewport(0, 0, size.x, size.y);
-  
   glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
+  
   DrawQuad(quadRect, quadColor); 
+  DrawQuad(DrawRectangle(1.0f, 1.0f), m_texture); 
 
-  glFlush();
   SwapBuffers();
 }
 
@@ -76,7 +80,7 @@ int AppCanvas::CreateTexture(const char* path)
 
   // Loading the texture data at `path`. 
   wxImage img;
-  if(!img.LoadFile(wxString(path))) 
+  if(!img.LoadFile(path, wxBITMAP_TYPE_PNG)) 
   {
     wxLogError("Failed to load texture at \'%s\'", path);
     return -1;
@@ -85,10 +89,10 @@ int AppCanvas::CreateTexture(const char* path)
   // Setting the texture's data;
   glTexImage2D(GL_TEXTURE_2D, 
                0, 
-               GL_RGBA, 
+               GL_RGB, 
                img.GetWidth(), img.GetHeight(),
                0, 
-               GL_RGBA, 
+               GL_RGB, 
                GL_UNSIGNED_BYTE, 
                img.GetData());
 
@@ -102,15 +106,17 @@ int AppCanvas::CreateTexture(const char* path)
   return id;
 }
 
+void AppCanvas::DestroyTexture(unsigned int textureID)
+{
+  glDeleteTextures(1, &textureID);
+}
+
 void AppCanvas::DrawQuad(const DrawRectangle& rect, const Color& col) 
 {
   glPushMatrix();
-  glTranslatef(rect.x, rect.y, 0.0f);
-  glScalef(rect.width, rect.height, 1.0f);
-
   glBegin(GL_QUADS);
     glColor3f(col.r, col.g, col.b);
-
+    
     glVertex2f(-0.5f,  0.5f); 
     glVertex2f( 0.5f,  0.5f); 
     glVertex2f( 0.5f, -0.5f); 
@@ -121,28 +127,25 @@ void AppCanvas::DrawQuad(const DrawRectangle& rect, const Color& col)
 
 void AppCanvas::DrawQuad(const DrawRectangle& rect, const int textureID) 
 {
-  if(textureID == -1) 
-  {
-    wxLogError("Cannot draw a textured quad with an invalid texture ID");
-    return;
-  }
+  glPushMatrix();
+  glTranslatef(rect.x, rect.y, 0.0f);
+  glScalef(rect.width, rect.height, 1.0f);
 
   glBindTexture(GL_TEXTURE_2D, textureID);
   glBegin(GL_QUADS);
-    glColor3f(1.0f, 1.0f, 1.0f);
-
-    glVertex2f(rect.x, rect.y); 
+    glVertex2f(-0.5f, 0.5f); 
     glTexCoord2f(0, 1); 
-
-    glVertex2f(rect.x + rect.width, rect.y); 
+    
+    glVertex2f(0.5f,  0.5f); 
     glTexCoord2f(1, 1); 
-
-    glVertex2f(rect.x + rect.width, rect.y + rect.height); 
+    
+    glVertex2f(0.5f, -0.5f); 
     glTexCoord2f(1, 0); 
-
-    glVertex2f(rect.x, rect.y + rect.height); 
+    
+    glVertex2f(-0.5f, -0.5f); 
     glTexCoord2f(0, 0); 
   glEnd();
+  glPopMatrix();
 }
 
 bool AppCanvas::InitGL() 
