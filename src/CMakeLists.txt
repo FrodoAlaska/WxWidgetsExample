@@ -1,8 +1,9 @@
 ### Project Sources ###
 ############################################################
 set(APP_SOURCES
-  # Base 
   ${APP_SRC_DIR}/app.cpp
+  ${APP_SRC_DIR}/app_frame.cpp
+  ${APP_SRC_DIR}/app_canvas.cpp
   ${APP_SRC_DIR}/main.cpp
 )
 ############################################################
