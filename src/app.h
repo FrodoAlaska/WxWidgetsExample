@@ -29,14 +29,17 @@ class GLFrame : public wxFrame {
 
   public:
     void OnPanelButton(wxCommandEvent& event);
+    void OnSlider(wxCommandEvent& event);
+    void OnCheckBox(wxCommandEvent& event);
 
   private: 
     GLCanvas* m_canvas = nullptr;
 
     wxBoxSizer* m_mainSizer   = nullptr;
     wxBoxSizer* m_bottomSizer = nullptr; 
+    wxBoxSizer* m_panelSizer  = nullptr;
 
-    bool m_isPanelOpen = false;
+    bool m_isPanelOpen     = false;
 };
 // GLFrame
 // -------------------------------------------------------------------------------------
@@ -51,10 +54,12 @@ class GLCanvas : public wxGLCanvas {
   public:
     void OnPaint(wxPaintEvent& event);
     void OnSize(wxSizeEvent& event);
-    void OnRotationSlider(wxCommandEvent& event);
-
-  public: 
-    wxBoxSizer* panelSizer = nullptr;
+    void Render();
+   
+  public:
+    float cubeRotation   = 1.0f;
+    bool isWireframeMode = false;
+    int polygonMode;
 
   private:
     void DrawCube();
@@ -64,7 +69,6 @@ class GLCanvas : public wxGLCanvas {
   private:
     wxGLContext* m_context = nullptr; 
     bool m_isGLInit        = false;
-    wxSize m_cubeRotation  = wxSize(1, 1); 
 };
 // GLCanvas
 // -------------------------------------------------------------------------------------

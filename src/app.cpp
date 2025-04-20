@@ -8,8 +8,8 @@ enum WidgetsID
 {
   ID_PANEL_BUTTON = wxID_HIGHEST + 1,
 
-  ID_PANEL_SLIDER_ROTATION_X,
-  ID_PANEL_SLIDER_ROTATION_Y,
+  ID_PANEL_SLIDER,
+  ID_PANEL_CHECKBOX,
 };
 // WidgetsID
 // -------------------------------------------------------------------------------------
@@ -34,6 +34,11 @@ bool ExampleApp::OnInit()
 GLFrame::GLFrame()
   : wxFrame(nullptr, wxID_ANY, "OpenGL Example") 
 {
+  // Sizers init
+  m_mainSizer   = new wxBoxSizer(wxVERTICAL);
+  m_bottomSizer = new wxBoxSizer(wxHORIZONTAL); 
+  m_panelSizer  = new wxBoxSizer(wxVERTICAL); 
+  
   // OpenGL canvas init
   m_canvas = new GLCanvas(this); 
   m_canvas->SetMinSize(FromDIP(wxSize(640, 480)));
@@ -42,34 +47,55 @@ GLFrame::GLFrame()
   wxGLAttributes attribs;
   attribs.RGBA().DoubleBuffer().EndList();
   
-  // Sizers init
-  m_mainSizer   = new wxBoxSizer(wxVERTICAL);
-  m_bottomSizer = new wxBoxSizer(wxHORIZONTAL); 
-  
   // Main sizer components init
   m_mainSizer->Add(m_canvas);
   m_mainSizer->Add(m_bottomSizer);
-  // m_mainSizer->Add(m_canvas->panelSizer);
+  m_mainSizer->Add(m_panelSizer);
 
   // Bottom sizer components init
   m_bottomSizer->Add(new wxButton(this, ID_PANEL_BUTTON, "Open Panel"));
+  
+  // Panel sizer components init
+  m_panelSizer->Add(new wxSlider(this, ID_PANEL_SLIDER, 1, 1, 100)); 
+  m_panelSizer->Add(new wxCheckBox(this, ID_PANEL_CHECKBOX, "Wireframe Mode"));
 
   // Re-fit
   SetSizerAndFit(m_mainSizer);
+  m_panelSizer->ShowItems(false);
   
   // Binding events
   Bind(wxEVT_BUTTON, &GLFrame::OnPanelButton, this);
+  Bind(wxEVT_SCROLL_CHANGED, &GLFrame::OnSlider, this);
+  Bind(wxEVT_CHECKBOX, &GLFrame::OnCheckBox, this);
 }
 
 GLFrame::~GLFrame() 
 {
-
+  delete m_canvas;
 }
 
 void GLFrame::OnPanelButton(wxCommandEvent& event) 
 {
   m_isPanelOpen = !m_isPanelOpen;
-  wxLogMessage("Not here, idiot!");
+  m_panelSizer->ShowItems(m_isPanelOpen);
+}
+
+void GLFrame::OnSlider(wxCommandEvent& event) 
+{
+  int value = event.GetInt(); 
+
+  m_canvas->cubeRotation = value;
+  m_canvas->Refresh();
+}
+  
+void GLFrame::OnCheckBox(wxCommandEvent& event) 
+{
+  if(event.IsChecked()) 
+    m_canvas->polygonMode = GL_LINE;
+  else 
+    m_canvas->polygonMode = GL_FILL;
+  
+  m_canvas->Refresh();
 }
 
 // GLFrame functions
@@ -106,14 +132,9 @@ GLCanvas::GLCanvas(GLFrame* parent)
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glFrustum(-0.5, 0.5, -0.5, 0.5, 0.1, 100.0);
-
-  // Panel sizer components init
-  panelSizer = new wxBoxSizer(wxVERTICAL); 
-  panelSizer->Add(new wxSlider(this, ID_PANEL_SLIDER_ROTATION_X, m_cubeRotation.x, 0, 360)); 
-  panelSizer->Add(new wxSlider(this, ID_PANEL_SLIDER_ROTATION_Y, m_cubeRotation.y, 0, 360)); 
   
-  // Binding events
-  Bind(wxEVT_SCROLL_CHANGED, &GLCanvas::OnRotationSlider, this);
+  // Setting default values
+  polygonMode = GL_FILL;
 }
 
 GLCanvas::~GLCanvas() 
@@ -123,45 +144,47 @@ GLCanvas::~GLCanvas()
 
 void GLCanvas::OnPaint(wxPaintEvent& event) 
 {
+  Render();
+}
+
+void GLCanvas::OnSize(wxSizeEvent& event) 
+{
+  wxSize size = event.GetSize() * GetContentScaleFactor();
+  glViewport(0, 0, size.x, size.y);
+
+  Refresh();
+}
+   
+void GLCanvas::Render() 
+{
   SetCurrent(*m_context);
   wxPaintDC(this);
  
   glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  auto size = GetSize();
+  wxSize size = GetSize() * GetContentScaleFactor();
   glViewport(0, 0, size.x, size.y);
- 
+  
+  glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
   DrawCube();  
 
-  glFlush();
   SwapBuffers();
-}
-
-void GLCanvas::OnSize(wxSizeEvent& event) 
-{
-  auto size = event.GetSize() * GetContentScaleFactor();
-  glViewport(0, 0, size.x, size.y);
-
-  Refresh();
-}
-
-void GLCanvas::OnRotationSlider(wxCommandEvent& event) 
-{
-  int value = event.GetInt(); 
-  m_cubeRotation.x = value;
 }
 
 void GLCanvas::DrawCube() 
 {
    glMatrixMode(GL_MODELVIEW);
    glLoadIdentity();
+
+   // Translation
    glTranslatef(0.0f, 0.0f, -1.0f);
-   glRotatef(m_cubeRotation.x, 1.0f, 0.0f, 0.0f);
-   glRotatef(m_cubeRotation.y, 0.0f, 1.0f, 0.0f);
+
+   // Rotation
+   glRotatef(cubeRotation, 1.0f, 1.0f, 1.0f);
 
    glBegin(GL_QUADS);
-    glColor3f(1.0f, 1.0f, 1.0f);
+    glColor3f(1.0f, 0.0f, 1.0f);
     
     glVertex3f( 0.5f, 0.5f, 0.5f);
     glVertex3f(-0.5f, 0.5f, 0.5f);
@@ -170,7 +193,7 @@ void GLCanvas::DrawCube()
    glEnd();
 
    glBegin(GL_QUADS);
-    glColor3f(1.0f, 1.0f, 1.0f);
+    glColor3f(1.0f, 0.0f, 1.0f);
     
     glVertex3f(-0.5f,-0.5f,-0.5f);
     glVertex3f(-0.5f, 0.5f,-0.5f);
@@ -179,7 +202,7 @@ void GLCanvas::DrawCube()
    glEnd();
 
    glBegin(GL_QUADS);
-    glColor3f(1.0f, 1.0f, 1.0f);
+    glColor3f(1.0f, 0.0f, 1.0f);
     
     glVertex3f( 0.5f, 0.5f, 0.5f);
     glVertex3f( 0.5f, 0.5f,-0.5f);
@@ -188,7 +211,7 @@ void GLCanvas::DrawCube()
    glEnd();
 
    glBegin(GL_QUADS);
-    glColor3f(1.0f, 1.0f, 1.0f);
+    glColor3f(1.0f, 0.0f, 1.0f);
     
     glVertex3f(-0.5f,-0.5f,-0.5f);
     glVertex3f( 0.5f,-0.5f,-0.5f);
@@ -197,7 +220,7 @@ void GLCanvas::DrawCube()
    glEnd();
 
    glBegin(GL_QUADS);
-    glColor3f(1.0f, 1.0f, 1.0f);
+    glColor3f(1.0f, 0.0f, 1.0f);
    
     glVertex3f(0.5f,  0.5f,  0.5f);
     glVertex3f(0.5f, -0.5f,  0.5f);
@@ -206,13 +229,15 @@ void GLCanvas::DrawCube()
    glEnd();
 
    glBegin(GL_QUADS);
-    glColor3f(1.0f, 1.0f, 1.0f);
+    glColor3f(1.0f, 0.0f, 1.0f);
     
     glVertex3f(-0.5f,-0.5f,-0.5f);
     glVertex3f(-0.5f,-0.5f, 0.5f);
     glVertex3f(-0.5f, 0.5f, 0.5f);
     glVertex3f(-0.5f, 0.5f,-0.5f);
    glEnd();
+  
+   glFlush();
 }
 
 bool GLCanvas::InitGL() 
