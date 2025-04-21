@@ -57,7 +57,6 @@ void AppCanvas::OnPaint(wxPaintEvent& event)
   glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
   
   DrawQuad(quadRect, quadColor); 
-  DrawQuad(DrawRectangle(1.0f, 1.0f), m_texture); 
 
   SwapBuffers();
 }
@@ -114,6 +113,9 @@ void AppCanvas::DestroyTexture(unsigned int textureID)
 void AppCanvas::DrawQuad(const DrawRectangle& rect, const Color& col) 
 {
   glPushMatrix();
+  glTranslatef(rect.x, rect.y, 0.0f);
+  glScalef(rect.width, rect.height, 1.0f);
+  
   glBegin(GL_QUADS);
     glColor3f(col.r, col.g, col.b);
     
@@ -122,12 +124,13 @@ void AppCanvas::DrawQuad(const DrawRectangle& rect, const Color& col)
     glVertex2f( 0.5f, -0.5f); 
     glVertex2f(-0.5f, -0.5f); 
   glEnd();
+  
   glPopMatrix();
 }
 
 void AppCanvas::DrawQuad(const DrawRectangle& rect, const int textureID) 
 {
-  glPushMatrix();
+  glMatrixMode(GL_TEXTURE);
   glTranslatef(rect.x, rect.y, 0.0f);
   glScalef(rect.width, rect.height, 1.0f);
 
@@ -145,7 +148,7 @@ void AppCanvas::DrawQuad(const DrawRectangle& rect, const int textureID)
     glVertex2f(-0.5f, -0.5f); 
     glTexCoord2f(0, 0); 
   glEnd();
-  glPopMatrix();
+  glFlush();
 }
 
 bool AppCanvas::InitGL() 
